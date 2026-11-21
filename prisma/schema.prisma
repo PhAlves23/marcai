@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Quem usa o Marcaí: barbeiro, personal, psicólogo, manicure...
+model Profissional {
+  id           String        @id @default(cuid())
+  nome         String
+  slug         String        @unique
+  fuso         String        @default("America/Sao_Paulo")
+  criadoEm     DateTime      @default(now())
+  servicos     Servico[]
+  agendamentos Agendamento[]
+}
+
+model Servico {
+  id             String        @id @default(cuid())
+  profissionalId String
+  profissional   Profissional  @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  nome           String
+  duracaoMin     Int
+  precoCentavos  Int
+  ativo          Boolean       @default(true)
+  agendamentos   Agendamento[]
+  pacotes        Pacote[]
+}
+
+enum StatusAgendamento {
+  CONFIRMADO
+  CANCELADO
+  FALTOU
+  CONCLUIDO
+}
+
+model Agendamento {
+  id             String            @id @default(cuid())
+  profissionalId String
+  profissional   Profissional      @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  servicoId      String
+  servico        Servico           @relation(fields: [servicoId], references: [id])
+  clienteNome    String
+  clienteEmail   String
+  inicio         DateTime
+  fim            DateTime
+  status         StatusAgendamento @default(CONFIRMADO)
+  criadoEm       DateTime          @default(now())
+
+  @@index([profissionalId, inicio])
+}
+
+/// Pacote de sessões de um serviço, vendido com desconto.
+model Pacote {
+  id                 String   @id @default(cuid())
+  servicoId          String
+  servico            Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  sessoes            Int
+  descontoPercentual Int
+  valorCentavos      Int
+  criadoEm           DateTime @default(now())
+}

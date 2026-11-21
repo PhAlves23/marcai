@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: marcai
+      POSTGRES_PASSWORD: marcai
+      POSTGRES_DB: marcai
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marcai"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - marcai-db:/var/lib/postgresql/data
+
+volumes:
+  marcai-db:
