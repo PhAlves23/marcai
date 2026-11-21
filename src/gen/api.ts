@@ -13,10 +13,13 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** Lista os agendamentos do profissional, do mais cedo para o mais tarde */
+        /** Lista os agendamentos do profissional, do mais cedo para o mais tarde, paginado */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    pagina?: number;
+                    porPagina?: number;
+                };
                 header?: never;
                 path: {
                     profissionalId: string;
@@ -25,13 +28,13 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Agendamentos */
+                /** @description Uma página de agendamentos */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Agendamento"][];
+                        "application/json": components["schemas"]["PaginaDeAgendamentos"];
                     };
                 };
             };
@@ -201,6 +204,13 @@ export interface components {
             /** Format: date-time */
             fim: string;
             status: components["schemas"]["StatusAgendamento"];
+        };
+        PaginaDeAgendamentos: {
+            itens: components["schemas"]["Agendamento"][];
+            pagina: number;
+            porPagina: number;
+            /** @description Total de agendamentos */
+            total: number;
         };
         NovoAgendamento: {
             servicoId: string;

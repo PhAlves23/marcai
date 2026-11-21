@@ -8,13 +8,16 @@ paths:
     parameters:
       - { name: profissionalId, in: path, required: true, schema: { type: string } }
     get:
-      summary: Lista os agendamentos do profissional, do mais cedo para o mais tarde
+      summary: Lista os agendamentos do profissional, do mais cedo para o mais tarde, paginado
+      parameters:
+        - { name: pagina, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: porPagina, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
       responses:
         '200':
-          description: Agendamentos
+          description: Uma página de agendamentos
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/Agendamento' } }
+              schema: { $ref: '#/components/schemas/PaginaDeAgendamentos' }
     post:
       summary: Cria um agendamento
       requestBody:
@@ -81,6 +84,14 @@ components:
         inicio: { type: string, format: date-time }
         fim: { type: string, format: date-time }
         status: { $ref: '#/components/schemas/StatusAgendamento' }
+    PaginaDeAgendamentos:
+      type: object
+      required: [itens, pagina, porPagina, total]
+      properties:
+        itens: { type: array, items: { $ref: '#/components/schemas/Agendamento' } }
+        pagina: { type: integer }
+        porPagina: { type: integer }
+        total: { type: integer, description: Total de agendamentos, somando todas as páginas }
     NovoAgendamento:
       type: object
       required: [servicoId, clienteNome, clienteEmail, inicio]

@@ -6,6 +6,7 @@ import { calcularFim, haConflito } from './domain/horario';
 import { CriarAgendamentoDto } from './dto/criar-agendamento.dto';
 
 type Agendamento = components['schemas']['Agendamento'];
+type PaginaDeAgendamentos = components['schemas']['PaginaDeAgendamentos'];
 
 function paraApi(a: AgendamentoDb): Agendamento {
   return {
@@ -23,12 +24,18 @@ function paraApi(a: AgendamentoDb): Agendamento {
 export class AgendamentosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(profissionalId: string): Promise<Agendamento[]> {
-    const agendamentos = await this.prisma.agendamento.findMany({
-      where: { profissionalId },
-      orderBy: { inicio: 'asc' },
-    });
-    return agendamentos.map(paraApi);
+  async listar(profissionalId: string, pagina: number, porPagina: number): Promise<PaginaDeAgendamentos> {
+    const where = { profissionalId };
+    const [agendamentos, total] = await this.prisma.$transaction([
+      this.prisma.agendamento.findMany({
+        where,
+        orderBy: { inicio: 'asc' },
+        skip: (pagina - 1) * porPagina,
+        take: porPagina,
+      }),
+      this.prisma.agendamento.count({ where }),
+    ]);
+    return { itens: agendamentos.map(paraApi), pagina, porPagina, total };
   }
 
   async criar(profissionalId: string, dto: CriarAgendamentoDto): Promise<Agendamento> {
