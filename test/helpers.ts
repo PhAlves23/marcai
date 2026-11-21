@@ -3,6 +3,14 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
+/** Amanhã, no horário UTC pedido, em ISO. Os testes nunca usam data fixa: ela vira passado. */
+export function amanhaAs(hora: number, minuto = 0): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + 1);
+  d.setUTCHours(hora, minuto, 0, 0);
+  return d.toISOString();
+}
+
 export async function criarApp(): Promise<{ app: INestApplication; prisma: PrismaService }> {
   const modulo = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = modulo.createNestApplication();

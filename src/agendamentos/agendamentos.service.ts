@@ -1,8 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Agendamento as AgendamentoDb } from '@prisma/client';
 import type { components } from '../gen/api';
 import { PrismaService } from '../prisma/prisma.service';
-import { calcularFim, haConflito } from './domain/horario';
+import { calcularFim, estaNoPassado, haConflito } from './domain/horario';
 import { CriarAgendamentoDto } from './dto/criar-agendamento.dto';
 
 type Agendamento = components['schemas']['Agendamento'];
@@ -39,10 +39,12 @@ export class AgendamentosService {
   }
 
   async criar(profissionalId: string, dto: CriarAgendamentoDto): Promise<Agendamento> {
+    const inicio = new Date(dto.inicio);
+    if (estaNoPassado(inicio)) throw new BadRequestException('Não dá para agendar no passado');
+
     const servico = await this.prisma.servico.findFirst({ where: { id: dto.servicoId, profissionalId, ativo: true } });
     if (!servico) throw new NotFoundException('Serviço não encontrado');
 
-    const inicio = new Date(dto.inicio);
     const fim = calcularFim(inicio, servico.duracaoMin);
     const doDia = await this.prisma.agendamento.findMany({
       where: { profissionalId, status: 'CONFIRMADO', inicio: { lt: fim }, fim: { gt: inicio } },
