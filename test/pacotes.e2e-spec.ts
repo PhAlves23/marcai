@@ -28,6 +28,15 @@ describe('Pacotes (integração)', () => {
     expect(res.body).toMatchObject({ sessoes: 4, descontoPercentual: 10, valorCentavos: 18000 });
   });
 
+  it('grava o valor arredondado corretamente', async () => {
+    const { servico } = await criarProfissionalComServico(prisma, 4990);
+    const res = await request(app.getHttpServer())
+      .post(`/servicos/${servico.id}/pacotes`)
+      .send({ sessoes: 3, descontoPercentual: 15 })
+      .expect(201);
+    expect(res.body.valorCentavos).toBe(12725);
+  });
+
   it('não aceita pacote de uma sessão só', async () => {
     const { servico } = await criarProfissionalComServico(prisma);
     await request(app.getHttpServer())
