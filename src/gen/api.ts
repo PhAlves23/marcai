@@ -65,6 +65,13 @@ export interface paths {
                         "application/json": components["schemas"]["Agendamento"];
                     };
                 };
+                /** @description Dados inválidos ou horário no passado */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
                 /** @description Horário em conflito com outro agendamento */
                 409: {
                     headers: {
